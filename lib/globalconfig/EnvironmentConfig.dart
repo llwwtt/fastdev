@@ -12,4 +12,8 @@ class EnvironmentConfig{
   static const bool ISPRODUCT=true;
   //
   static const bool ISPORXY=true;
+  static const String APPKEY="cpj2xarlchayn";
+  static const String APPSECRET="X96nrGJQLQ2s";
+
+
 }

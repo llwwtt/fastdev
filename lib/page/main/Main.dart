@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:emoji_picker/emoji_picker.dart';
 import 'package:fastdev/bean/MessageBean.dart';
+import 'package:fastdev/globalconfig/EnvironmentConfig.dart';
 import 'package:fastdev/mywidgets/Bubble.dart';
 import 'package:fastdev/mywidgets/ChatButtle.dart';
 import 'package:fastdev/page/main/MainProvider.dart';
@@ -14,6 +15,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:keyboard_visibility/keyboard_visibility.dart';
 import 'package:provider/provider.dart';
+import 'package:rongcloud_im_plugin/rongcloud_im_plugin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 ///实现思路
 ///1。键盘打开时记录键盘的高度。因为emoji也需要使用这个高度。
@@ -38,12 +40,15 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
 
   bool _showLeyBoard=false;
 
-  
+  String _token="GZC3xRmauT4FF83b31gKPjr48d8OZbdNY9t+Zp8ergXVEFhwGjCBqw==@b26u.cn.rongnav.com;b26u.cn.rongcfg.com";
   @override
   void initState() {
     // TODO: implement initState
     WidgetsBinding.instance.addPostFrameCallback((d)=>_getRenderBox());
-
+    RongcloudImPlugin.init(EnvironmentConfig.APPKEY);
+    RongcloudImPlugin.connect(_token).then((result){
+      debugPrint("链接结果 $result");
+    });
     super.initState();
 
     ///系统自带键盘弹出监听
@@ -51,17 +56,21 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
       onChange: (bool visible) async {
         _showLeyBoard=visible;
         ///打开时判断当前imoji是否在显示,显示则关闭，
-        setState(() {
-          if(visible){
-            _reSetWindow=true;
-          }else{
-            _reSetWindow=false;
-          }
-        });
+        if(mounted){
+          setState(() {
+            if(visible){
+              _reSetWindow=true;
+              isShowEmoji=false;
+            }else{
+              _reSetWindow=false;
+            }
+          });
+        }
         debugPrint("重置${_reSetWindow}");
+//        _scrollController.animateTo(_scrollController.position.maxScrollExtent,
+//            duration: Duration(milliseconds: 500), curve: Curves.bounceIn);
         Timer(Duration(milliseconds: 100), () => _scrollController.jumpTo(_scrollController.position.maxScrollExtent));
-//        Timer(Duration(milliseconds: 500), () => _scrollController.animateTo(_scrollController.position.maxScrollExtent,
-//            duration: Duration(milliseconds: 10), curve: Curves.bounceIn));
+
 
       },
     );
@@ -77,11 +86,16 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
       }
     });
 
+
   }
   @override
   void didChangeDependencies() {
     // TODO: implement didChangeDependencies
     super.didChangeDependencies();
+//    Timer(Duration(milliseconds: 100), () => _scrollController.animateTo(_scrollController.position.maxScrollExtent,
+//        duration: Duration(milliseconds: 2000), curve: Curves.bounceIn));
+    Timer(Duration(milliseconds: 100), () => _scrollController.jumpTo(_scrollController.position.maxScrollExtent));
+
   }
   @override
   void dispose() {
@@ -95,6 +109,14 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
   double bootomHeight=0.0;
   FocusNode _focusNode = FocusNode();
   bool isShowEmoji=false;
+  onGetHistoryMessages() async {
+    List msgs = await RongcloudImPlugin.getHistoryMessage(RCConversationType.Private, "18811785120", 0, 10);
+    print("get history message");
+    for(Message m in msgs) {
+      print("sentTime = "+m.content.encode());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
@@ -164,8 +186,8 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
                         if(_msgController.text.isEmpty){
                           return;
                         }
-                        MessageBean msg=MessageBean("未du", "2020-05-08", _msgController.text, 0, Random().nextInt(2), "2020-05-08", 0);
-                        Provider.of<ChatProvider>(context,listen: false).updateList(msg);
+                        MessageBean msg=MessageBean("未du", "2020-05-08", _msgController.text, 0, 0, "2020-05-08", 0);
+                        Provider.of<ChatProvider>(context,listen: false).sendMsg(msg);
                         _msgController.clear();
                         Timer(Duration(milliseconds: 100), () => _scrollController.jumpTo(_scrollController.position.maxScrollExtent));
                        }, icon: Icon(Icons.send))

@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:rongcloud_im_plugin/rongcloud_im_plugin.dart';
 
 import 'mywidgets/CircleWidegt.dart';
 void main() => runApp(
@@ -16,7 +17,7 @@ void main() => runApp(
       ChangeNotifierProvider(create: (context)=>LoginInfo("","")),
       ChangeNotifierProvider(create: (context)=>ChatProvider(),)
     ],
-      child: MyApp(),)
+      child: MyApp(),),
     );
 
 class MyApp extends StatelessWidget {
