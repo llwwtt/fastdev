@@ -40,7 +40,6 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
   var _reSetWindow=false;
 
   bool _showLeyBoard=false;
-  bool _changeState=false;
   String _token="GZC3xRmauT4FF83b31gKPjr48d8OZbdNY9t+Zp8ergXVEFhwGjCBqw==@b26u.cn.rongnav.com;b26u.cn.rongcfg.com";
   @override
   void initState() {
@@ -60,19 +59,16 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
         if(mounted){
           setState(() {
             debugPrint("kkkkkkkkkkk====回掉");
-
-
             if(visible){
+//              keyHeight=271.0;
               isShowEmoji=true;
             }else{
-              if(_showLeyBoard){
+              if(_focusNode.hasFocus){
                 isShowEmoji=false;
               }
             }
           });
         }
-//        _scrollController.animateTo(_scrollController.position.maxScrollExtent,
-//            duration: Duration(milliseconds: 500), curve: Curves.bounceIn);
         Timer(Duration(milliseconds: 100), () => _scrollController.jumpTo(_scrollController.position.maxScrollExtent));
 
 
@@ -81,9 +77,7 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
     _focusNode.addListener((){
 
 //      if(_focusNode.hasFocus){
-//        _reSetWindow=true;
-//      }else{
-//        _reSetWindow=false;
+//        isShowEmoji=false;
 //      }
     });
 
@@ -95,11 +89,26 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
     super.didChangeDependencies();
 //    Timer(Duration(milliseconds: 100), () => _scrollController.animateTo(_scrollController.position.maxScrollExtent,
 //        duration: Duration(milliseconds: 2000), curve: Curves.bounceIn));
-    debugPrint("=====didChangeDependencies");
+    if(_showLeyBoard){
+      debugPrint("didChangeDependencies：${MediaQuery.of(context).viewInsets.bottom}");
+      setState(() {
+        keyHeight=MediaQuery.of(context).viewInsets.bottom;//获取键盘的高度，最好是持久化保存的数据，暂时使用临时获取的
 
+        isShowEmoji=true;
+      });
+      //print("键盘的高度 = $keyHeight");
+
+    }
     Timer(Duration(milliseconds: 100), () => _scrollController.jumpTo(_scrollController.position.maxScrollExtent));
 
   }
+  @override
+  void didUpdateWidget(MainPage oldWidget) {
+    // TODO: implement didUpdateWidget
+
+    super.didUpdateWidget(oldWidget);
+  }
+
   @override
   void dispose() {
     // TODO: implement dispose
@@ -112,6 +121,8 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
   double bootomHeight=0.0;
   FocusNode _focusNode = FocusNode();
   bool isShowEmoji=false;
+  bool _changeState=false;
+
   onGetHistoryMessages() async {
     List msgs = await RongcloudImPlugin.getHistoryMessage(RCConversationType.Private, "18811785120", 0, 10);
     print("get history message");
@@ -119,14 +130,14 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
       print("sentTime = "+m.content.encode());
     }
   }
+  double keyHeight=0.0;
 
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-//    if(_showLeyBoard){
-//      double keyHeight=MediaQuery.of(context).viewInsets.bottom;//获取键盘的高度，最好是持久化保存的数据，暂时使用临时获取的
-//      Provider.of<ChatProvider>(context,listen: false).setKeyBoardHeight(keyHeight);
-//    }
+    print('-----------build=--------------');
+
+
     return Scaffold(
       resizeToAvoidBottomInset: _reSetWindow,
       body: Stack(
@@ -167,39 +178,17 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
 //                        focusNode: _focusNode,
 //                      ),
 //                      ),
-                       Flexible(child: RawKeyboardListener(focusNode: FocusNode(), child: TextField(
+                       Flexible(child: TextField(
                          controller: _msgController,
                          focusNode: _focusNode,
-//                         onSubmitted: (keyValue){
-//                           LogUtil.e("-----------start---------$keyValue");
-//                         },
-
-                         ),
-                         onKey: (RawKeyEvent event){
-//                           RawKeyDownEvent rawKeyDownEvent = event.data;
-                           RawKeyEventDataAndroid rawKeyEventDataAndroid = event.data;
-                           debugPrint("kkkkkkkkkkk====${rawKeyEventDataAndroid.keyCode}");
-
-
-                         },
-                         autofocus: true,
-//                         key: UniqueKey(),
-                       )),
+                       ),),
                       IconButton(onPressed: (){
                         _changeState=true;
-
+                        //emoji一直都是显示的。控制的是键盘的打开与关闭。键盘的打开与关闭打开不用考虑，当主动关闭时，emoji也需要关闭。
                         debugPrint("当前_showLeyBoard：$_showLeyBoard,当前isShowEmoji：$isShowEmoji");
                         if(_showLeyBoard){
-
-                          debugPrint("关闭");
-                          debugPrint("kkkkkkkkkkk====if");
-
                           FocusScope.of(context).requestFocus(FocusNode());
-
-//                          _focusNode.unfocus();
                         }else{
-                          debugPrint("打开");
-                          debugPrint("kkkkkkkkkkk====else");
                           _focusNode.unfocus();
                           FocusScope.of(context).requestFocus(_focusNode);
                         }
