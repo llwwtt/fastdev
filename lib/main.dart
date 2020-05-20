@@ -3,6 +3,7 @@ import 'package:fastdev/generated/i18n.dart';
 import 'package:fastdev/mywidgets/LineWidget.dart';
 import 'package:fastdev/net/ApiInterface.dart';
 import 'package:fastdev/page/main/MainProvider.dart';
+import 'package:fastdev/page/main/MyApp.dart';
 import 'package:fastdev/page/user/LoginPage.dart';
 import 'package:fastdev/page/user/LoginProvider.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +30,6 @@ class MyApp extends StatelessWidget {
       //国际化处理
       localizationsDelegates: [
         S.delegate,
-        ///国际化处理，这块还有问题！！！
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate
       ],

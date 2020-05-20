@@ -21,9 +21,6 @@ class S implements WidgetsLocalizations {
   @override
   TextDirection get textDirection => TextDirection.ltr;
 
-  String get app_name => "Flutter App internationalization";
-  String get main_content => "You have click the button many times";
-  String get main_title => "Flutter i18n";
 }
 
 class $en extends S {
@@ -36,12 +33,6 @@ class $zh_CN extends S {
   @override
   TextDirection get textDirection => TextDirection.ltr;
 
-  @override
-  String get app_name => "Flutter应用国际化";
-  @override
-  String get main_content => "点击按钮次数";
-  @override
-  String get main_title => "Flutter国际化";
 }
 
 class GeneratedLocalizationsDelegate extends LocalizationsDelegate<S> {

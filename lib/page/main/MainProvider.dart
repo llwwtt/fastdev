@@ -6,6 +6,18 @@ import 'package:rongcloud_im_plugin/rongcloud_im_plugin.dart';
 
 class ChatProvider with ChangeNotifier{
 
+
+  double keyBoardHeight;
+  void setKeyBoardHeight(double height){
+    this.keyBoardHeight=height;
+    notifyListeners();
+  }
+  double getKeyBoardHeight(){
+    return keyBoardHeight;
+  }
+
+
+
   String privateUserId="18811785120";
   List<MessageBean> _msgList;
 
