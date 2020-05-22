@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:emoji_picker/emoji_picker.dart';
 import 'package:fastdev/bean/MessageBean.dart';
 import 'package:fastdev/globalconfig/EnvironmentConfig.dart';
@@ -35,8 +36,6 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
     keepScrollOffset: true
   );
 
-  var _endHeiht=0.0;
-
   var _reSetWindow=false;
 
   bool _showLeyBoard=false;
@@ -44,7 +43,6 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
   @override
   void initState() {
     // TODO: implement initState
-    WidgetsBinding.instance.addPostFrameCallback((d)=>_getRenderBox());
     RongcloudImPlugin.init(EnvironmentConfig.APPKEY);
     RongcloudImPlugin.connect(_token).then((result){
       debugPrint("链接结果 $result");
@@ -60,7 +58,6 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
           setState(() {
             debugPrint("kkkkkkkkkkk====回掉");
             if(visible){
-//              keyHeight=271.0;
               isShowEmoji=true;
             }else{
               if(_focusNode.hasFocus){
@@ -70,66 +67,41 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
           });
         }
         Timer(Duration(milliseconds: 100), () => _scrollController.jumpTo(_scrollController.position.maxScrollExtent));
-
-
       },
     );
-    _focusNode.addListener((){
-
-//      if(_focusNode.hasFocus){
-//        isShowEmoji=false;
-//      }
-    });
-
 
   }
   @override
   void didChangeDependencies() {
     // TODO: implement didChangeDependencies
     super.didChangeDependencies();
-//    Timer(Duration(milliseconds: 100), () => _scrollController.animateTo(_scrollController.position.maxScrollExtent,
-//        duration: Duration(milliseconds: 2000), curve: Curves.bounceIn));
     if(_showLeyBoard){
       debugPrint("didChangeDependencies：${MediaQuery.of(context).viewInsets.bottom}");
       setState(() {
         keyHeight=MediaQuery.of(context).viewInsets.bottom;//获取键盘的高度，最好是持久化保存的数据，暂时使用临时获取的
-
         isShowEmoji=true;
       });
       //print("键盘的高度 = $keyHeight");
 
     }
+
+
     Timer(Duration(milliseconds: 100), () => _scrollController.jumpTo(_scrollController.position.maxScrollExtent));
 
   }
   @override
-  void didUpdateWidget(MainPage oldWidget) {
-    // TODO: implement didUpdateWidget
-
-    super.didUpdateWidget(oldWidget);
-  }
-
-  @override
   void dispose() {
     // TODO: implement dispose
     KeyboardVisibilityNotification().dispose();
+    _focusNode.dispose();
+    _msgController.dispose();
     _scrollController.dispose();
     super.dispose();
 
   }
-  Key _listKey=Key("123123");
   double bootomHeight=0.0;
   FocusNode _focusNode = FocusNode();
   bool isShowEmoji=false;
-  bool _changeState=false;
-
-  onGetHistoryMessages() async {
-    List msgs = await RongcloudImPlugin.getHistoryMessage(RCConversationType.Private, "18811785120", 0, 10);
-    print("get history message");
-    for(Message m in msgs) {
-      print("sentTime = "+m.content.encode());
-    }
-  }
   double keyHeight=0.0;
 
   @override
@@ -137,7 +109,8 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
     // TODO: implement build
     print('-----------build=--------------');
 
-
+    dynamic value=ModalRoute.of(context).settings.arguments;
+    String  taggetid=value["taggetid"];
     return Scaffold(
       resizeToAvoidBottomInset: _reSetWindow,
       body: Stack(
@@ -153,7 +126,6 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
                     return ChatItem(messageBean: Provider.of<ChatProvider>(context).msgList[i],);
                   },
                     itemCount: Provider.of<ChatProvider>(context).msgList.length,
-                    key: _listKey,
                     reverse: false,
                     controller: _scrollController,
                     physics: BouncingScrollPhysics(),
@@ -173,17 +145,11 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
                         padding: EdgeInsets.all(1.0),
 
                       ),
-//                      Flexible(child: TextField(
-//                        controller: _msgController,
-//                        focusNode: _focusNode,
-//                      ),
-//                      ),
                        Flexible(child: TextField(
                          controller: _msgController,
                          focusNode: _focusNode,
                        ),),
                       IconButton(onPressed: (){
-                        _changeState=true;
                         //emoji一直都是显示的。控制的是键盘的打开与关闭。键盘的打开与关闭打开不用考虑，当主动关闭时，emoji也需要关闭。
                         debugPrint("当前_showLeyBoard：$_showLeyBoard,当前isShowEmoji：$isShowEmoji");
                         if(_showLeyBoard){
@@ -192,19 +158,15 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
                           _focusNode.unfocus();
                           FocusScope.of(context).requestFocus(_focusNode);
                         }
-
-
                        }, icon: _showLeyBoard?Icon(Icons.keyboard):Icon(Icons.sentiment_satisfied),
-                        key: _key,
-                      )
-                      ,
+                      ),
                       IconButton(onPressed: (){
                         //发送成功。发送中。发送失败
                         if(_msgController.text.isEmpty){
                           return;
                         }
-                        MessageBean msg=MessageBean("未du", "2020-05-08", _msgController.text, 0, 0, "2020-05-08", 0);
-                        Provider.of<ChatProvider>(context,listen: false).sendMsg(msg);
+                        TextMessage txtMessage = TextMessage.obtain(_msgController.text);
+                        Provider.of<ChatProvider>(context,listen: false).sendMsg(txtMessage,taggetid,RCMessageDirection.Send);
                         _msgController.clear();
                         Timer(Duration(milliseconds: 100), () => _scrollController.jumpTo(_scrollController.position.maxScrollExtent));
                        }, icon: Icon(Icons.send))
@@ -213,7 +175,7 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
                 ),
                 Offstage(
                     offstage: isShowEmoji==false,
-                  child: Container(child:EmojiPicker(
+                    child: Container(child:EmojiPicker(
                     keyBoardHeight: 271,
                     rows: 3,
                     columns: 7,
@@ -229,141 +191,159 @@ class _MainPageState extends State<MainPage> with SingleTickerProviderStateMixin
               ],
             ),
           ),
-//          Positioned(child: Container(
-//            width: Adapt.screenW(),
-//            height: 50,
-//            color: Colors.white,
-//            child: Row(
-//              children: <Widget>[
-//                IconButton(onPressed: (){
-//
-//                }, icon: Icon(Icons.keyboard_voice),
-//                  padding: EdgeInsets.all(1.0),
-//
-//                ),
-//                Flexible(child: TextField(
-//                  controller: _msgController,
-//                  focusNode: _focusNode,
-//                ),
-//                ),
-//                IconButton(onPressed: (){
-//                  debugPrint("当前_showLeyBoard：$_showLeyBoard,当前isShowEmoji：$isShowEmoji");
-//                  if(_showLeyBoard&&isShowEmoji==true){
-////                          _focusNode.unfocus();
-////                          setState(() {
-////                            isShowEmoji=true;
-////                          });
-////                          Timer(Duration(milliseconds: 100), (){
-////                            setState(() {
-////                              isShowEmoji=true;
-////                            });
-////                          });
-//                  }else if(_showLeyBoard==false&&isShowEmoji==true){
-//                    setState(() {
-//                      isShowEmoji=true;
-//                    });
-//                    _focusNode.unfocus();
-//                    FocusScope.of(context).requestFocus(_focusNode);
-//                  }else{
-//                    setState(() {
-//                      isShowEmoji=true;
-//                    });
-//                  }
-//                }, icon: _showLeyBoard?Icon(Icons.keyboard):Icon(Icons.sentiment_satisfied))
-//                ,
-//                IconButton(onPressed: (){
-//                  //发送成功。发送中。发送失败
-//                  if(_msgController.text.isEmpty){
-//                    return;
-//                  }
-//                  MessageBean msg=MessageBean("未du", "2020-05-08", _msgController.text, 0, 0, "2020-05-08", 0);
-//                  Provider.of<ChatProvider>(context,listen: false).sendMsg(msg);
-//                  _msgController.clear();
-//                  Timer(Duration(milliseconds: 100), () => _scrollController.jumpTo(_scrollController.position.maxScrollExtent));
-//                }, icon: Icon(Icons.send))
-//              ],
-//            ),
-//          ),
-//          bottom: 317,
-//          )
         ],
       ),
     );
-  }
-  //定义一个key
-  GlobalKey _key = GlobalKey();
-  _getRenderBox() {
-    //获取`RenderBox`对象
-    RenderBox renderBox = _key.currentContext.findRenderObject();
-
-    debugPrint("高度:${renderBox.size.height}");
   }
 }
 class ChatItem extends StatelessWidget{
 
   ChatItem({Key key, this.messageBean}) : super(key: key);
-  final MessageBean messageBean;
-  FocusNode _commentFocus = FocusNode();
+  final Message messageBean;
 
   @override
   Widget build(BuildContext context) {
     //
     return Consumer(builder: (_,ChatProvider provider,child){
-
-      return messageBean.msgSource==1?Container(
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              Padding(
-                padding: EdgeInsets.all(10.0),
-                child: ClipOval(
-                  child: Container(
-                    width: 50,
-                    height: 50,
-                    child: Image.asset("images/img_1.jpeg",fit: BoxFit.cover,),
-                  ),
-                ),
-              ),
-              Flexible(
-                child:Bubble(
-                  direction: BubbleDirection.left,
-                  color: Colors.purple,
-                  child: Text(messageBean.msg),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ):Container(
-        child: Align(
-          alignment: Alignment.centerRight,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[
-              Flexible(
-                child:Bubble(
-                  direction: BubbleDirection.right,
-                  color: Colors.purple,
-                  child: Text(messageBean.msg),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(10.0),
-                child: ClipOval(
-                  child: Container(
-                    width: 50,
-                    height: 50,
-                    child: Image.asset("images/img_1.jpeg",fit: BoxFit.cover,),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+      return   buildChatWidget(messageBean);
     });
+  }
+  //判断在哪边显示，以及显示什么内容
+  Widget buildChatWidget(Message messageBean) {
+
+    if(RCMessageDirection.Receive==messageBean.messageDirection){
+      Map map=jsonDecode(messageBean.content.encode());
+      String strContent=map["content"];
+      print("收到的：$strContent");
+      switch(messageBean.objectName){
+        case TextMessage.objectName:
+          return Align(
+            alignment: Alignment.centerLeft,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.all(10.0),
+                  child: ClipOval(
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      child: Image.asset("images/img_1.jpeg",fit: BoxFit.cover,),
+                    ),
+                  ),
+                ),
+                Flexible(
+                  child:Bubble(
+                    direction: BubbleDirection.left,
+                    color: Colors.purple,
+                    child: Text(strContent),
+                  ),
+                ),
+              ],
+            ),
+          );
+        case ImageMessage.objectName:
+          return Align(
+            alignment: Alignment.centerLeft,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.all(10.0),
+                  child: ClipOval(
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      child: Image.asset("images/img_1.jpeg",fit: BoxFit.cover,),
+                    ),
+                  ),
+                ),
+                Flexible(
+                  child:Bubble(
+                    direction: BubbleDirection.left,
+                    color: Colors.purple,
+                    child: CachedNetworkImage(
+                      imageUrl: "http://via.placeholder.com/350x150",
+                      placeholder: (context, url) => CircularProgressIndicator(),
+                      errorWidget: (context, url, error) => Icon(Icons.error),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+      }
+    }else if(RCMessageDirection.Send==messageBean.messageDirection){
+      Map map=jsonDecode(messageBean.content.encode());
+      String strContent=map["content"];
+      print("发送的的：$strContent");
+
+      switch(messageBean.objectName){
+        case TextMessage.objectName:
+         return Container(
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                Flexible(
+                  child:Bubble(
+                    direction: BubbleDirection.right,
+                    color: Colors.purple,
+                    child: Text(strContent),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(10.0),
+                  child: ClipOval(
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      child: Image.asset("images/img_1.jpeg",fit: BoxFit.cover,),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+        case ImageMessage.objectName:
+          return Container(
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  Flexible(
+                    child:Bubble(
+                      direction: BubbleDirection.right,
+                      color: Colors.purple,
+                      child: CachedNetworkImage(
+                        imageUrl: "http://via.placeholder.com/350x150",
+                        placeholder: (context, url) => CircularProgressIndicator(),
+                        errorWidget: (context, url, error) => Icon(Icons.error),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.all(10.0),
+                    child: ClipOval(
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        child: Image.asset("images/img_1.jpeg",fit: BoxFit.cover,),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+      }
+
+    }else{
+
+    }
   }
 
 }

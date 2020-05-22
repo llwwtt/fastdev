@@ -2,6 +2,8 @@
 import 'package:fastdev/generated/i18n.dart';
 import 'package:fastdev/mywidgets/LineWidget.dart';
 import 'package:fastdev/net/ApiInterface.dart';
+import 'package:fastdev/page/friends/FriendsListPage.dart';
+import 'package:fastdev/page/main/Main.dart';
 import 'package:fastdev/page/main/MainProvider.dart';
 import 'package:fastdev/page/main/MyApp.dart';
 import 'package:fastdev/page/user/LoginPage.dart';
@@ -25,6 +27,8 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+
+
     return MaterialApp(
 //      showPerformanceOverlay: true,
       //国际化处理
@@ -39,6 +43,13 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       home:LoginMain(),
+      routes: <String, WidgetBuilder>{
+        '/FriendsPage': (BuildContext context) =>  FriendsPage(),
+        '/MainPage': (BuildContext context) =>  MainPage(),
+
+
+
+      },
     );
   }
 }

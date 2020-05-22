@@ -5,6 +5,7 @@ import 'package:fastdev/screen/ScreenAdapter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rongcloud_im_plugin/rongcloud_im_plugin.dart';
 
 import 'LoginProvider.dart';
 
@@ -16,6 +17,7 @@ class LoginMain extends StatefulWidget{
     // TODO: implement createState
     return LoginWidget();
   }
+
 }
 class LoginWidget  extends State<LoginMain>{
   var _currChild_1 = Container(
@@ -41,10 +43,14 @@ class LoginWidget  extends State<LoginMain>{
   List<Widget> bgImgList=List();
   int index=0;
   Timer _timer;
+  List<dynamic> list222=List();
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+
+
     bgImgList.add(_currChild_1);
     bgImgList.add(_currChild_2);
     bgImgList.add(_currChild_3);
@@ -137,9 +143,8 @@ class LoginWidget  extends State<LoginMain>{
                       width: Adapt.screenW()-100,
                       child: CupertinoButton(onPressed: (){
                         Provider.of<LoginInfo>(context,listen: false).setLoginInfo(userConTroller.text, pwdConTroller.text);
-                        Navigator.push(context, MaterialPageRoute(builder: (context){
-                          return MainPage();
-                        }));
+                        Navigator.pushNamed(context, "/FriendsPage");
+
                       },
                           pressedOpacity: .5,
                           color: Colors.blueAccent,

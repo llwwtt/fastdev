@@ -19,9 +19,9 @@ class ChatProvider with ChangeNotifier{
 
 
   String privateUserId="18811785120";
-  List<MessageBean> _msgList;
+  List<Message> _msgList;
 
-  List<MessageBean> get msgList => _msgList==null?List():_msgList;
+  List<Message> get msgList => _msgList==null?List():_msgList;
   //在构造函数中初始化接收
   ChatProvider(){
     if(_msgList==null){
@@ -29,18 +29,15 @@ class ChatProvider with ChangeNotifier{
     }
     
     RongcloudImPlugin.onMessageReceivedWrapper = (Message msg, int left, bool hasPackage, bool offline) {
-      Map map=jsonDecode(msg.content.encode());
-      String strContent=map["content"];
-      _msgList.add(MessageBean("、", "、", strContent, 1, 1, "msgTime",1 ));
+      _msgList.add(msg);
       notifyListeners();
     };
   }
   ///发送消息
-  void sendMsg(MessageBean messageBean,){
-    TextMessage txtMessage = new TextMessage();
-    txtMessage.content = messageBean.msg;
-    RongcloudImPlugin.sendMessage(RCConversationType.Private, "15011381883", txtMessage).then((msg){
-      _msgList.add(messageBean);
+  void sendMsg(dynamic msg,targetId, int send){
+    //发送信息
+    RongcloudImPlugin.sendMessage(RCConversationType.Private, targetId, msg).then((msg){
+      _msgList.add(msg);
       notifyListeners();
 
     });

@@ -19,6 +19,10 @@ PODS:
   - "permission_handler (5.0.0+hotfix.4)":
     - Flutter
   - Reachability (3.2)
+  - rongcloud_im_plugin (0.0.1):
+    - Flutter
+    - RongCloudIM/IMLib
+  - RongCloudIM/IMLib (2.10.6)
   - shared_preferences (0.0.1):
     - Flutter
   - shared_preferences_macos (0.0.1):
@@ -38,6 +42,7 @@ DEPENDENCIES:
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
   - path_provider_macos (from `.symlinks/plugins/path_provider_macos/ios`)
   - permission_handler (from `.symlinks/plugins/permission_handler/ios`)
+  - rongcloud_im_plugin (from `.symlinks/plugins/rongcloud_im_plugin/ios`)
   - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
   - shared_preferences_macos (from `.symlinks/plugins/shared_preferences_macos/ios`)
   - shared_preferences_web (from `.symlinks/plugins/shared_preferences_web/ios`)
@@ -47,6 +52,7 @@ SPEC REPOS:
   trunk:
     - FMDB
     - Reachability
+    - RongCloudIM
 
 EXTERNAL SOURCES:
   emoji_picker:
@@ -65,6 +71,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/path_provider_macos/ios"
   permission_handler:
     :path: ".symlinks/plugins/permission_handler/ios"
+  rongcloud_im_plugin:
+    :path: ".symlinks/plugins/rongcloud_im_plugin/ios"
   shared_preferences:
     :path: ".symlinks/plugins/shared_preferences/ios"
   shared_preferences_macos:
@@ -85,6 +93,8 @@ SPEC CHECKSUMS:
   path_provider_macos: f760a3c5b04357c380e2fddb6f9db6f3015897e0
   permission_handler: 303c2050a9543399244cfb2be8cc70fd14334b89
   Reachability: 33e18b67625424e47b6cde6d202dce689ad7af96
+  rongcloud_im_plugin: 2e9076465c27d5970f4219058ae4745703470201
+  RongCloudIM: b1768dcb3af90d00ce621f7de4f787285435fbe3
   shared_preferences: af6bfa751691cdc24be3045c43ec037377ada40d
   shared_preferences_macos: f3f29b71ccbb56bf40c9dd6396c9acf15e214087
   shared_preferences_web: 141cce0c3ed1a1c5bf2a0e44f52d31eeb66e5ea9
